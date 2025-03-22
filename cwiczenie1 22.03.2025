@@ -1,0 +1,93 @@
+using System;
+
+// tworze interfejs inpc
+public interface INPC
+{
+    void Przedstawsie();
+}
+
+// tworzenie klas postaci
+public class Wojownik : INPC
+{
+    public void Przedstawsie()
+    {
+        Console.WriteLine("jestem wojownikiem wladajacym mieczem");
+    }
+}
+
+public class Mag : INPC
+{
+    public void Przedstawsie()
+    {
+        Console.WriteLine("jestem magiem wladajacym magia zywiolow");
+    }
+}
+
+public class Zlodziej : INPC
+{
+    public void Przedstawsie()
+    {
+        Console.WriteLine("jestem zlodziejem nie mam atrybutow");
+    }
+}
+
+// tworzenie interfejsu fabryki
+public interface IFabrykaNPC
+{
+    INPC CreateNPC();
+}
+
+// deklarowanie klas fabryk
+public class FabrykaWojownika : IFabrykaNPC
+{
+    public INPC CreateNPC()
+    {
+        return new Wojownik();
+    }
+}
+
+public class FabrykaMaga : IFabrykaNPC
+{
+    public INPC CreateNPC()
+    {
+        return new Mag();
+    }
+}
+
+public class FabrykaZlodzieja : IFabrykaNPC
+{
+    public INPC CreateNPC()
+    {
+        return new Zlodziej();
+    }
+}
+
+// program glowny
+class Program
+{
+    static void Main()
+    {
+        Random rand = new Random();
+        int losowaPostac = rand.Next(3); // Losujemy liczbę 0, 1 lub 2
+
+        IFabrykaNPC fabryka;
+
+        switch (losowaPostac)
+        {
+            case 0:
+                fabryka = new FabrykaWojownika();
+                break;
+            case 1:
+                fabryka = new FabrykaMaga();
+                break;
+            case 2:
+                fabryka = new FabrykaZlodzieja();
+                break;
+            default:
+                throw new Exception("error");
+        }
+
+        INPC npc = fabryka.CreateNPC();
+        npc.Przedstawsie();
+    }
+}
