@@ -1,0 +1,152 @@
+using System;
+
+// Interfejs paczki
+public interface IPackage
+{
+    void Pack();
+}
+
+// Interfejs kuriera
+public interface ICourier
+{
+    void Deliver();
+}
+
+// Interfejs fabryki logistyki
+public interface IFactoryLogistics
+{
+    IPackage CreatePackage();
+    ICourier CreateCourier();
+}
+
+// Klasy paczek
+public class SmallPackage : IPackage
+{
+    public void Pack()
+    {
+        Console.WriteLine("Paczka mała została zapakowana.");
+    }
+}
+
+public class MediumPackage : IPackage
+{
+    public void Pack()
+    {
+        Console.WriteLine("Paczka średnia została zapakowana.");
+    }
+}
+
+public class LargePackage : IPackage
+{
+    public void Pack()
+    {
+        Console.WriteLine("Paczka duża została zapakowana.");
+    }
+}
+
+// Klasy kurierów
+public class DHLCourier : ICourier
+{
+    public void Deliver()
+    {
+        Console.WriteLine("Przesyłka została dostarczona przez DHL.");
+    }
+}
+
+public class UPSCourier : ICourier
+{
+    public void Deliver()
+    {
+        Console.WriteLine("Przesyłka została dostarczona przez UPS.");
+    }
+}
+
+// Fabryki logistyki dla różnych lokalizacji
+public class FactoryPolandLogistics : IFactoryLogistics
+{
+    public IPackage CreatePackage() => new MediumPackage();  // W Polsce używamy paczek średnich
+    public ICourier CreateCourier() => new DHLCourier();    // W Polsce używamy kuriera DHL
+}
+
+public class FactoryUSALogistics : IFactoryLogistics
+{
+    public IPackage CreatePackage() => new LargePackage();  // W USA paczki są duże
+    public ICourier CreateCourier() => new UPSCourier();   // W USA używamy kuriera UPS
+}
+
+public class FactoryAfricaLogistics : IFactoryLogistics
+{
+    public IPackage CreatePackage() => new SmallPackage();  // W Afryce paczki są małe
+    public ICourier CreateCourier() => new DHLCourier();    // W Afryce kurier DHL
+}
+
+// Enum dla lokalizacji
+public enum Localization
+{
+    Polska,
+    USA,
+    Africa
+}
+
+// Klasa zarządzająca przesyłkami (Singleton)
+public class PackageManager
+{
+    private static readonly Lazy<PackageManager> _instance = new Lazy<PackageManager>(() => new PackageManager());
+    public static PackageManager Instance => _instance.Value;
+
+    private IFactoryLogistics? _factoryLogistics;
+
+    // Prywatny konstruktor dla Singletona
+    private PackageManager() { }
+
+    // Metoda do przygotowania przesyłki na podstawie lokalizacji
+    public void GetShipment(Localization localization)
+    {
+        switch (localization)
+        {
+            case Localization.Polska:
+                _factoryLogistics = new FactoryPolandLogistics();
+                break;
+            case Localization.USA:
+                _factoryLogistics = new FactoryUSALogistics();
+                break;
+            case Localization.Africa:
+                _factoryLogistics = new FactoryAfricaLogistics();
+                break;
+            default:
+                throw new ArgumentException($"Nieobsługiwana lokalizacja: {localization}");
+        }
+
+        // Tworzenie paczki i kuriera
+        var package = _factoryLogistics.CreatePackage();
+        var courier = _factoryLogistics.CreateCourier();
+
+        // Wykonanie operacji na paczce i kurierze
+        package.Pack();
+        courier.Deliver();
+    }
+}
+
+// Program główny
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Przykład użycia Singletona i fabryki logistyki w zależności od lokalizacji
+
+        // Przesyłka z Polski
+        Console.WriteLine("Zamówienie z Polski:");
+        PackageManager.Instance.GetShipment(Localization.Polska);
+        Console.WriteLine();
+
+        // Przesyłka z USA
+        Console.WriteLine("Zamówienie z USA:");
+        PackageManager.Instance.GetShipment(Localization.USA);
+        Console.WriteLine();
+
+        // Przesyłka z Afryki
+        Console.WriteLine("Zamówienie z Afryki:");
+        PackageManager.Instance.GetShipment(Localization.Africa);
+        Console.WriteLine();
+    }
+}
