@@ -1,0 +1,110 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
+using System.Xml.Serialization;
+
+// 1. Klasa bazowa Osoba
+public class Osoba
+{
+    public string Imie { get; set; }
+    public string Nazwisko { get; set; }
+    public int Wiek { get; set; }
+    public DateTime DataUrodzenia { get; set; }
+}
+
+// 2. Klasa pochodna Student
+public class Student : Osoba
+{
+    public string NumerIndeksu { get; set; }
+    public string NumerGrupy { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        // 3. Tworzenie obiektów
+        List<Osoba> osoby = new List<Osoba>
+        {
+            new Osoba { Imie = "Patryk", Nazwisko = "Kowalski", Wiek = 30, DataUrodzenia = new DateTime(1995, 1, 15) },
+            new Osoba { Imie = "Marianna", Nazwisko = "Nowakowska", Wiek = 25, DataUrodzenia = new DateTime(2000, 6, 25) },
+            new Student { Imie = "Łukasz", Nazwisko = "Lewandowski", Wiek = 22, DataUrodzenia = new DateTime(2003, 3, 10), NumerIndeksu = "S12345", NumerGrupy = "A1" },
+            new Student { Imie = "Marta", Nazwisko = "Wiśniewska", Wiek = 21, DataUrodzenia = new DateTime(2004, 11, 5), NumerIndeksu = "S67890", NumerGrupy = "B2" }
+        };
+
+        // Ścieżki do plików
+        string xmlFilePath = "osoby.xml";
+        string jsonFilePath = "osoby.json";
+
+        // 4. Serializacja do XML
+        SerializujDoXML(osoby, xmlFilePath);
+
+        // 5. Serializacja do JSON
+        SerializujDoJSON(osoby, jsonFilePath);
+
+        // 6. Wczytaj i wyświetl dane z plików
+        Console.WriteLine("\nDane wczytane z pliku XML:");
+        var osobyZXml = DeserializujZXML(xmlFilePath);
+        foreach (var osoba in osobyZXml)
+        {
+            WyswietlOsobe(osoba);
+        }
+
+        Console.WriteLine("\nDane wczytane z pliku JSON:");
+        var osobyZJson = DeserializujZJSON(jsonFilePath);
+        foreach (var osoba in osobyZJson)
+        {
+            WyswietlOsobe(osoba);
+        }
+    }
+
+    static void SerializujDoXML(List<Osoba> osoby, string filePath)
+    {
+        XmlSerializer serializer = new XmlSerializer(typeof(List<Osoba>), new Type[] { typeof(Student) });
+        using (FileStream fs = new FileStream(filePath, FileMode.Create))
+        {
+            serializer.Serialize(fs, osoby);
+        }
+    }
+
+    static void SerializujDoJSON(List<Osoba> osoby, string filePath)
+    {
+        var options = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            IncludeFields = true
+        };
+        string jsonString = JsonSerializer.Serialize(osoby, options);
+        File.WriteAllText(filePath, jsonString);
+    }
+
+    static List<Osoba> DeserializujZXML(string filePath)
+    {
+        XmlSerializer serializer = new XmlSerializer(typeof(List<Osoba>), new Type[] { typeof(Student) });
+        using (FileStream fs = new FileStream(filePath, FileMode.Open))
+        {
+            return (List<Osoba>)serializer.Deserialize(fs);
+        }
+    }
+
+    static List<Osoba> DeserializujZJSON(string filePath)
+    {
+        var options = new JsonSerializerOptions
+        {
+            IncludeFields = true
+        };
+        string jsonString = File.ReadAllText(filePath);
+        return JsonSerializer.Deserialize<List<Osoba>>(jsonString, options);
+    }
+
+    static void WyswietlOsobe(Osoba osoba)
+    {
+        Console.WriteLine($"Imię: {osoba.Imie}, Nazwisko: {osoba.Nazwisko}, Wiek: {osoba.Wiek}, Data urodzenia: {osoba.DataUrodzenia.ToShortDateString()}");
+
+        if (osoba is Student student)
+        {
+            Console.WriteLine($"  Numer Indeksu: {student.NumerIndeksu}, Numer Grupy: {student.NumerGrupy}");
+        }
+    }
+}
