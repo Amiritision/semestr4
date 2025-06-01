@@ -1,0 +1,125 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+
+interface IOsoba
+{
+    void Akceptuj(IVisitor visitor);
+}
+
+
+class Uczen : IOsoba
+{
+    public string Imie { get; set; }
+    public List<int> Oceny { get; set; }
+
+    public void Akceptuj(IVisitor visitor)
+    {
+        visitor.Odwiedz(this);
+    }
+}
+
+
+class Nauczyciel : IOsoba
+{
+    public string Imie { get; set; }
+    public int LiczbaWystawionychOcen { get; set; }
+
+    public void Akceptuj(IVisitor visitor)
+    {
+        visitor.Odwiedz(this);
+    }
+}
+
+
+class Administrator : IOsoba
+{
+    public string Imie { get; set; }
+    public List<string> Logi { get; set; }
+
+    public void Akceptuj(IVisitor visitor)
+    {
+        visitor.Odwiedz(this);
+    }
+}
+
+
+interface IVisitor
+{
+    void Odwiedz(Uczen uczen);
+    void Odwiedz(Nauczyciel nauczyciel);
+    void Odwiedz(Administrator administrator);
+}
+
+
+class ReportVisitor : IVisitor
+{
+    public void Odwiedz(Uczen uczen)
+    {
+        if (uczen.Oceny != null && uczen.Oceny.Count > 0)
+        {
+            double srednia = uczen.Oceny.Average();
+            Console.WriteLine($"Uczeń {uczen.Imie} – Średnia ocen: {srednia:F2}");
+        }
+        else
+        {
+            Console.WriteLine($"Uczeń {uczen.Imie} – Brak ocen");
+        }
+    }
+
+    public void Odwiedz(Nauczyciel nauczyciel)
+    {
+        Console.WriteLine($"Nauczyciel {nauczyciel.Imie} – Wystawił ocen: {nauczyciel.LiczbaWystawionychOcen}");
+    }
+
+    public void Odwiedz(Administrator administrator)
+    {
+        Console.WriteLine($"Administrator {administrator.Imie} – Logi systemowe:");
+        if (administrator.Logi != null && administrator.Logi.Count > 0)
+        {
+            foreach (var log in administrator.Logi)
+            {
+                Console.WriteLine($"- {log}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Brak logów systemowych.");
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var osoby = new List<IOsoba>
+        {
+            new Uczen { Imie = "Kasia", Oceny = new List<int> { 4, 5, 3, 5 } },
+            new Uczen { Imie = "Tomek", Oceny = new List<int>() },
+            new Nauczyciel { Imie = "Anna Kowalska", LiczbaWystawionychOcen = 134 },
+            new Administrator
+            {
+                Imie = "Marek",
+                Logi = new List<string> { "Dodano użytkownika", "Zmieniono hasło" }
+            },
+            new Administrator
+            {
+                Imie = "Magda",
+                Logi = new List<string>() 
+            }
+        };
+
+        var visitor = new ReportVisitor();
+
+        foreach (var osoba in osoby)
+        {
+            osoba.Akceptuj(visitor);
+            Console.WriteLine(); 
+        }
+
+        Console.WriteLine("Naciśnij dowolny klawisz, aby zakończyć...");
+        Console.ReadKey();
+    }
+}
